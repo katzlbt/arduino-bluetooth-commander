@@ -5,6 +5,8 @@ Example: Command: "blink" with argument "on" or "off": blink [ on | off ]
 Copy CatsCommandInterpreter/* to your libraries folder and restart the 
 Arduino SDK. Open the example as sketch and study it.
 
+Use an UART Serial App like this: https://itunes.apple.com/us/app/nrf-uart/id614594903?mt=8
+
 USAGE:
 
     #define CMD_MAX_COMMANDS 7
@@ -20,3 +22,5 @@ USAGE:
       if(commandInterpreter.interpretCommand(buffer, len)) // check if command can be interpreted
         return;  // do not echo if command was a success
     }
+
+![](https://raw.githubusercontent.com/katzlbt/arduino-bluetooth-commander/master/pictures/ArduinoProBluefruit.jpg)
