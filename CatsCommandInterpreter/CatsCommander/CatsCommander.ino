@@ -37,6 +37,28 @@ CatsCommandInterpreter commandInterpreter = CatsCommandInterpreter();
 
 boolean blinkNow = false;
 
+void json_append_attr_int(String *status, char *attr, int val)
+{
+    *status += '"';
+    *status += attr;
+    *status += "\":";
+    *status += val;
+}
+
+boolean command_status(char* arg1)  // TX: STATUS-JSON {"blinking":1}
+{
+    // ==== STATUS JSON ====>>>
+    String status = "{";  // using String adds 2kB!
+    
+    json_append_attr_int(&status, "blinking", blinkNow); // status += ',';
+    
+    status += '}';
+    // <<<==== STATUS JSON ====    
+    
+    uart.print(status);
+    return true;
+}
+
 boolean command_blink(char* arg1)
 {
     if(strcmp(arg1, "on") == 0) // command1: start blinking
@@ -78,7 +100,7 @@ void setup(void)
     // ====== BEGIN == Start Serial Console ======
     Serial.begin(9600); // print smart stuff to the console
     delay(1000);
-    Serial.println(F("Adafruit Bluefruit Low Energy nRF8001 Callback Echo demo"));
+    Serial.println(F("nRF8001 CommandInterpreter Demo"));
     // ====== END ==== Start Serial Console ======
     
     // ======  ==============================
@@ -86,6 +108,7 @@ void setup(void)
 
     // ======  REGISTER COMMANDS ==============================
     commandInterpreter.addCommand("blink", command_blink);
+    commandInterpreter.addCommand("status", command_status);
 }
 
 // ====================================
