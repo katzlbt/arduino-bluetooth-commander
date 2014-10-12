@@ -37,6 +37,82 @@ CatsCommandInterpreter commandInterpreter = CatsCommandInterpreter();
 
 boolean blinkNow = false;
 
+int argument_pin(char* arg)
+{
+    switch(*arg)
+    {
+        case '3': return 3;
+        case '4': return 4;
+        case '5': return 5;
+        case '6': return 6;
+        case '7': return 7;
+        case '8': return 8;
+        
+        case 'A':
+            switch(*(arg+1))
+            {
+                case '1': return A1;
+                case '2': return A2;
+                case '3': return A3;
+                case '4': return A4;
+                case '5': return A5;
+                case '6': return A6;
+            }
+    }
+    
+    return A6; // ugly default
+}
+
+int argument_mode(char* arg)
+{
+    if(*arg == 'O')
+       return OUTPUT;
+       
+    if(*arg == 'P')
+       return INPUT_PULLUP;
+       
+    return INPUT;
+}
+
+int argument_hilo(char* arg)
+{
+    if(*arg == 'H')
+       return HIGH;
+       
+    return LOW;
+}
+
+boolean command_pmode(char* arg1, char* arg2)  // pinmode A0 [O, I]
+{
+    // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
+    pinMode(argument_pin(arg1), argument_mode(arg2));
+    uart.print("OK pinmode");
+}
+
+boolean command_dwrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
+{
+    // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
+    digitalWrite(argument_pin(arg1), argument_hilo(arg2));
+    uart.print("OK dwrite");
+    return true;
+}
+
+boolean command_awrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
+{
+    // pins 3, 5, 6 (unavailable: 9, 10, 11)
+    int pin = argument_pin(arg1);
+    
+    if(pin!=3 && pin!=5 && pin!=6)
+    {
+        uart.print(F("ERROR no PWM"));
+        return true;
+    }
+    
+    analogWrite(pin, atoi(arg2));
+    uart.print("OK awrite");
+    return true;
+}
+
 void json_append_attr_int(String *status, char *attr, int val)
 {
     *status += '"';
@@ -45,7 +121,7 @@ void json_append_attr_int(String *status, char *attr, int val)
     *status += val;
 }
 
-boolean command_status(char* arg1)  // TX: STATUS-JSON {"blinking":1}
+boolean command_status(char* arg1, char* arg2)  // TX: STATUS-JSON {"blinking":1}
 {
     // ==== STATUS JSON ====>>>
     String status = "{";  // using String adds 2kB!
@@ -55,11 +131,12 @@ boolean command_status(char* arg1)  // TX: STATUS-JSON {"blinking":1}
     status += '}';
     // <<<==== STATUS JSON ====    
     
+    // the message will be split into 20 byte packets and must be assembled at the destination
     uart.print(status);
     return true;
 }
 
-boolean command_blink(char* arg1)
+boolean command_blink(char* arg1, char* arg2)
 {
     if(strcmp(arg1, "on") == 0) // command1: start blinking
     {
@@ -109,6 +186,9 @@ void setup(void)
     // ======  REGISTER COMMANDS ==============================
     commandInterpreter.addCommand("blink", command_blink);
     commandInterpreter.addCommand("status", command_status);
+    commandInterpreter.addCommand("pmode", command_pmode);
+    commandInterpreter.addCommand("dwrite", command_dwrite);
+    commandInterpreter.addCommand("awrite", command_awrite);
 }
 
 // ====================================
