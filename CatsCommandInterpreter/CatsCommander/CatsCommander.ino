@@ -87,6 +87,8 @@ boolean command_pmode(char* arg1, char* arg2)  // pinmode A0 [O, I]
     // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
     pinMode(argument_pin(arg1), argument_mode(arg2));
     uart.print("OK pinmode");
+    
+    return true;
 }
 
 boolean command_dwrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
@@ -94,6 +96,17 @@ boolean command_dwrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
     // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
     digitalWrite(argument_pin(arg1), argument_hilo(arg2));
     uart.print("OK dwrite");
+    return true;
+}
+
+boolean command_dread(char* arg1, char* arg2)  // pinmode A0 [O, I]
+{
+    // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
+    if(digitalRead(argument_pin(arg1)))
+        uart.print("1");
+    else
+        uart.print("0");
+       
     return true;
 }
 
@@ -188,6 +201,7 @@ void setup(void)
     commandInterpreter.addCommand("status", command_status);
     commandInterpreter.addCommand("pmode", command_pmode);
     commandInterpreter.addCommand("dwrite", command_dwrite);
+    commandInterpreter.addCommand("dread", command_dread);
     commandInterpreter.addCommand("awrite", command_awrite);
 }
 
