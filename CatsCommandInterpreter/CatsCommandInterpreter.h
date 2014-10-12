@@ -4,6 +4,13 @@
 
 // CONFIGURATION define those before including this header
 
+#define ACTIVATE_SERIAL 1
+
+#ifndef ACTIVATE_SERIAL
+  #define Serial.print(x) 
+  #define Serial.println(x) 
+#endif
+
 #ifndef CMD_WORD_SEPARATOR
   #define CMD_WORD_SEPARATOR ' '
 #endif
@@ -34,12 +41,13 @@
         return;  // do not echo if command was a success
     }
  **/
-typedef boolean (*CommandExecuteCallback)(char* arg1);  
+typedef boolean (*CommandExecuteCallback)(char* arg1, char* arg2);  
 
 class CatsCommandInterpreter
 {
     char command[CMD_WORD_MAXLEN+1];  // currently parsed command
     char arg1[CMD_WORD_MAXLEN+1];     // currently parsed argument
+    char arg2[CMD_WORD_MAXLEN+1];     // currently parsed argument
     
     const char *commands[CMD_MAX_COMMANDS];             // available commands
     CommandExecuteCallback commandf[CMD_MAX_COMMANDS];  // available execution functions
@@ -67,34 +75,48 @@ class CatsCommandInterpreter
     
     void parseArguments(uint8_t *buffer, uint8_t len)
     {
-        // parse incoming command into command plus 1 argument
+        // parse incoming command (MAX 20 BYTES?)into command plus 1 argument
         command[0] = command[CMD_WORD_MAXLEN] = 0; // if it is missing
         arg1[0] = arg1[CMD_WORD_MAXLEN] = 0;       // if it is missing
+        arg2[0] = arg2[CMD_WORD_MAXLEN] = 0;       // if it is missing
         
         int argc=0, lena=0; // arguments count
         
         char *dest = command; // copy to string 1
         for(int i=0; i<len; i++)
         {
-            unsigned char c = (char)buffer[i];
+            char c = buffer[i];
             
             if(++lena < CMD_WORD_MAXLEN)
-                *(dest++) = c;
+                *dest = c;
             
             if(c == CMD_WORD_SEPARATOR && argc == 0)  // switch to arg1 if space, repeat if there could be more args
             {
-                *(dest-1) = 0; // replace space (32) with 0
-                dest = arg1;   // string 2
+                *dest = 0;    // replace space (32) with 0
+                dest = arg1;  // string 2
                 lena = 0;
                 argc++;
             }
+            else
+            if(c == CMD_WORD_SEPARATOR && argc == 1)  // switch to arg2 if space, repeat if there could be more args
+            {
+                *dest = 0;    // replace space (32) with 0
+                dest = arg2;  // string 3
+                lena = 0;
+                argc++;
+            }
+            else // increment if NOT SEPARATOR
+                dest++;
         }
         
         *(dest++) = 0; // terminate last arg
         
         Serial.print(command);
-        Serial.print(":");
-        Serial.println(arg1);
+        Serial.print("(");
+        Serial.print(arg1);
+        Serial.print(",");
+        Serial.print(arg2);
+        Serial.println(")");
     }
     
     boolean interpretCommand(uint8_t *buffer, uint8_t len)  // returns false if unknown/failed command
@@ -107,7 +129,7 @@ class CatsCommandInterpreter
     {
         for(int i=0;i<CMD_MAX_COMMANDS;i++)
             if(strcmp(this->command, commands[i]) == 0) // command1: start blinking
-                return commandf[i](this->arg1);
+                return commandf[i](this->arg1, this->arg2);
                         
         return false;
     }
