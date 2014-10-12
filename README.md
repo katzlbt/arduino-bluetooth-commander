@@ -1,6 +1,11 @@
 CommandInterpreter is a shell-like command interpreter that parses one 
-command + one argument per line from char buffer of a serial connection.
+command + two arguments per line from char buffer of a serial connection,
+which is a bluetooth low energy UART in this case.
+
 Example: Command: "blink" with argument "on" or "off": blink [ on | off ]
+Example: Command: "dwrite A1 H"  ... digitalWrite(A1, HIGH)
+Example: Command: "pmode A2 O"   ... pinMode(A1, OUTPUT)
+Example: Command: "awrite 3 128" ... analogWrite(3, 128)
 
 Download and install the dependent library [Adafruit_nRF8001](http://github.com/adafruit/Adafruit_nRF8001)
 then copy CatsCommandInterpreter/* to your libraries folder and restart the 
