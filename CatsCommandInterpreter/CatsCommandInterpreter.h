@@ -20,7 +20,7 @@
 #endif
 
 #ifndef CMD_MAX_COMMANDS
-  #define CMD_MAX_COMMANDS 5
+  #define CMD_MAX_COMMANDS 7
 #endif
 
 /** CommandInterpreter is a shell-like command interpreter that parses one 

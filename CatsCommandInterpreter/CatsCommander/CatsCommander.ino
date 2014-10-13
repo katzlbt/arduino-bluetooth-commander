@@ -37,6 +37,41 @@ CatsCommandInterpreter commandInterpreter = CatsCommandInterpreter();
 
 boolean blinkNow = false;
 
+#define AVAILABLE_PINS 12
+char* pinNames[AVAILABLE_PINS] = {"ledPWM", "4", "testInput", "6", "7", "8", "A0", "A1", "A2", "A3", "A4", "A5"};  // 12 pins
+unsigned char pinIds[AVAILABLE_PINS] = {3, 4, 5, 6, 7, 8, A0, A1, A2, A3, A4, A5};  // 12 pins
+boolean dreadStatusPins[AVAILABLE_PINS]  = {0,0,1,0,0,0,0,0,0,0,0,0};  // 12 pins, set to 1 for inclusion in status
+
+void json_append_attr_int(String *status, char *attr, int val, boolean comma=false)
+{
+    if(comma) *status += ',';
+    *status += '"';
+    *status += attr;
+    *status += "\":";
+    *status += val;
+}
+
+boolean command_status(char* arg1, char* arg2)  // TX: STATUS-JSON {"blinking":1}
+{
+    // ==== STATUS JSON ====>>>
+    String status = "{";  // using String adds 2kB!
+    
+    json_append_attr_int(&status, "blinking", blinkNow); // status += ',';
+    
+    for(int i=0;i<AVAILABLE_PINS;i++)
+    {
+        if(dreadStatusPins[i])
+            json_append_attr_int(&status, pinNames[i], digitalRead(pinIds[i]), true);            
+    }
+    
+    status += '}';
+    // <<<==== STATUS JSON ====    
+    
+    // the message will be split into 20 byte packets and must be assembled at the destination
+    uart.print(status);
+    return true;
+}
+
 int argument_pin(char* arg)
 {
     switch(*arg)
@@ -60,7 +95,8 @@ int argument_pin(char* arg)
             }
     }
     
-    return A6; // ugly default
+    uart.print(F("ERROR invalid pin!"));
+    return 0;
 }
 
 int argument_mode(char* arg)
@@ -85,7 +121,13 @@ int argument_hilo(char* arg)
 boolean command_pmode(char* arg1, char* arg2)  // pinmode A0 [O, I]
 {
     // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
-    pinMode(argument_pin(arg1), argument_mode(arg2));
+    int pin = argument_pin(arg1);
+    if(pin == 0)
+        return true;
+    
+    int mode = argument_mode(arg2);
+    
+    pinMode(pin, mode);
     uart.print("OK pinmode");
     
     return true;
@@ -94,7 +136,11 @@ boolean command_pmode(char* arg1, char* arg2)  // pinmode A0 [O, I]
 boolean command_dwrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
 {
     // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
-    digitalWrite(argument_pin(arg1), argument_hilo(arg2));
+    int pin = argument_pin(arg1);
+    if(pin == 0)
+        return true;
+    
+    digitalWrite(pin, argument_hilo(arg2));
     uart.print("OK dwrite");
     return true;
 }
@@ -102,7 +148,11 @@ boolean command_dwrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
 boolean command_dread(char* arg1, char* arg2)  // pinmode A0 [O, I]
 {
     // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
-    if(digitalRead(argument_pin(arg1)))
+    int pin = argument_pin(arg1);
+    if(pin == 0)
+        return true;
+        
+    if(digitalRead(pin))
         uart.print("1");
     else
         uart.print("0");
@@ -117,35 +167,12 @@ boolean command_awrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
     
     if(pin!=3 && pin!=5 && pin!=6)
     {
-        uart.print(F("ERROR no PWM"));
+        uart.print(F("ERROR invalid pin!"));
         return true;
     }
     
     analogWrite(pin, atoi(arg2));
     uart.print("OK awrite");
-    return true;
-}
-
-void json_append_attr_int(String *status, char *attr, int val)
-{
-    *status += '"';
-    *status += attr;
-    *status += "\":";
-    *status += val;
-}
-
-boolean command_status(char* arg1, char* arg2)  // TX: STATUS-JSON {"blinking":1}
-{
-    // ==== STATUS JSON ====>>>
-    String status = "{";  // using String adds 2kB!
-    
-    json_append_attr_int(&status, "blinking", blinkNow); // status += ',';
-    
-    status += '}';
-    // <<<==== STATUS JSON ====    
-    
-    // the message will be split into 20 byte packets and must be assembled at the destination
-    uart.print(status);
     return true;
 }
 
