@@ -1,9 +1,9 @@
 CommandInterpreter is a shell-like command interpreter that parses one 
 command + two arguments per line from char buffer of a serial connection,
-which is a bluetooth low energy UART in this case.
-One command is limited to 20 chars as the UART hardware cannot process more
-than that in one UART message/packet. Return messages will be assembled to 
-larger strings.
+which is a Bluetooth Smart (low energy) UART in this case.
+One command is limited to 20 chars as the UART nRf8001 Bluefruit hardware cannot process more
+than that in one UART message/packet. Return messages can be assembled by the
+software on the phone to larger messages.
 
 Example commands:
   * "blink" with argument "on" or "off": blink [ on | off ]
