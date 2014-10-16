@@ -4,6 +4,7 @@
 
 // CONFIGURATION define those before including this header
 
+// comment out next line to disable serial debugging
 #define ACTIVATE_SERIAL 1
 
 #ifndef ACTIVATE_SERIAL
@@ -15,7 +16,7 @@
   #define CMD_WORD_SEPARATOR ' '
 #endif
 
-#ifndef CMD_MAX_COMMANDS
+#ifndef CMD_WORD_MAXLEN
   #define CMD_WORD_MAXLEN 9
 #endif
 
@@ -127,8 +128,8 @@ class CatsCommandInterpreter
     
     boolean interpretCommand()  // returns false if unknown/failed command
     {
-        for(int i=0;i<CMD_MAX_COMMANDS;i++)
-            if(strcmp(this->command, commands[i]) == 0) // command1: start blinking
+        for(int i=0;i<CMD_MAX_COMMANDS;i++)  // a for loop is ok for 1..30 commands
+            if(strcmp(this->command, commands[i]) == 0)
                 return commandf[i](this->arg1, this->arg2);
                         
         return false;

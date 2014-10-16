@@ -21,7 +21,7 @@
 Adafruit_BLE_UART uart = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
 
 // ====== CUSTOM PIN SETUP ======
-#define ledPin A3
+#define ledPin 3
 
 // ====================================
 // ===== COMMAND INTERPRETER      =====
