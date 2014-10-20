@@ -23,6 +23,19 @@ Adafruit_BLE_UART uart = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADA
 // ====== CUSTOM PIN SETUP ======
 #define ledPin 3
 
+// define next line to do serial debugging
+//#define ACTIVATE_SERIAL 1
+
+#ifdef ACTIVATE_SERIAL
+  #define sbegin(x) Serial.begin(x)
+  #define sprint(args...) Serial.print(args)
+  #define sprintln(args...) Serial.println(args)
+#else
+  #define sbegin(x)
+  #define sprint(args...)
+  #define sprintln(args...)
+#endif
+
 // ====================================
 // ===== COMMAND INTERPRETER      =====
 // ====================================
@@ -215,9 +228,9 @@ void setup(void)
     // ====== END ==== Bluefruit UART SETUP ======
     
     // ====== BEGIN == Start Serial Console ======
-    Serial.begin(9600); // print smart stuff to the console
+    sbegin(9600); // print smart stuff to the console
     delay(1000);
-    Serial.println(F("nRF8001 CommandInterpreter Demo"));
+    sprintln(F("nRF8001 CommandInterpreter Demo"));
     // ====== END ==== Start Serial Console ======
     
     // ======  ==============================
@@ -261,13 +274,13 @@ void aciCallback(aci_evt_opcode_t event)
   switch(event)
   {
     case ACI_EVT_DEVICE_STARTED:
-      Serial.println(F("Advertising started"));
+      sprintln(F("Advertising started"));
       break;
     case ACI_EVT_CONNECTED:
-      Serial.println(F("Connected!"));
+      sprintln(F("Connected!"));
       break;
     case ACI_EVT_DISCONNECTED:
-      Serial.println(F("Disconnected or advertising timed out"));
+      sprintln(F("Disconnected or advertising timed out"));
       break;
     default:
       break;
@@ -281,9 +294,9 @@ void aciCallback(aci_evt_opcode_t event)
 /**************************************************************************/
 void rxCallback(uint8_t *buffer, uint8_t len)
 {
-  Serial.print(F("Received "));
-  Serial.print(len);
-  Serial.print(F(" bytes: "));
+  sprint(F("Received "));
+  sprint(len);
+  sprint(F(" bytes: "));
   
   if(commandInterpreter.interpretCommand(buffer, len)) // check if command can be interpreted
       return;  // do not echo if command was a success
@@ -293,12 +306,12 @@ void rxCallback(uint8_t *buffer, uint8_t len)
   
   // print buffer in HEX to the console:
   /*
-  Serial.print(F(" ["));
+  print(F(" ["));
   for(int i=0; i<len; i++)
   {
-      Serial.print(" 0x"); Serial.print((char)buffer[i], HEX); 
+      print(" 0x"); print((char)buffer[i], HEX); 
   }
-  Serial.println(F(" ]"));
+  println(F(" ]"));
   */
 }
 
