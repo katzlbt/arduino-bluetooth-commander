@@ -4,12 +4,17 @@
 
 // CONFIGURATION define those before including this header
 
-// comment out next line to disable serial debugging
-#define ACTIVATE_SERIAL 1
+// define next line to do serial debugging
+//#define ACTIVATE_SERIAL 1
 
-#ifndef ACTIVATE_SERIAL
-  #define Serial.print(x) 
-  #define Serial.println(x) 
+#ifdef ACTIVATE_SERIAL
+  #define sbegin(x) begin(x)
+  #define sprint(args...) print(args)
+  #define sprintln(args...) println(args)
+#else
+  #define sbegin(x)
+  #define sprint(args...)
+  #define sprintln(args...)
 #endif
 
 #ifndef CMD_WORD_SEPARATOR
@@ -71,7 +76,7 @@ class CatsCommandInterpreter
             }
         }
         
-        Serial.println(F("CommandInterpreter MAX_COMMANDS exceeded."));
+        sprintln(F("CommandInterpreter MAX_COMMANDS exceeded."));
     }
     
     void parseArguments(uint8_t *buffer, uint8_t len)
@@ -112,12 +117,12 @@ class CatsCommandInterpreter
         
         *(dest++) = 0; // terminate last arg
         
-        Serial.print(command);
-        Serial.print("(");
-        Serial.print(arg1);
-        Serial.print(",");
-        Serial.print(arg2);
-        Serial.println(")");
+        sprint(command);
+        sprint("(");
+        sprint(arg1);
+        sprint(",");
+        sprint(arg2);
+        sprintln(")");
     }
     
     boolean interpretCommand(uint8_t *buffer, uint8_t len)  // returns false if unknown/failed command
