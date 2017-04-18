@@ -15,7 +15,7 @@ Download and install the dependent library [Adafruit_nRF8001](http://github.com/
 then copy CatsCommandInterpreter/* to your libraries folder and restart the 
 Arduino SDK. Open the example as sketch and study it.
 
-Use an UART Serial App like this: https://itunes.apple.com/us/app/nrf-uart/id614594903?mt=8
+Use an UART Serial App like this: https://itunes.apple.com/at/app/nrf-toolbox/id820906058?mt=8
 
 USAGE:
 
