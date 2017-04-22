@@ -3,17 +3,24 @@ command + two arguments per line from char buffer of a serial connection,
 which is a Bluetooth Smart (low energy) UART in this case.
 One command is limited to 20 chars as the UART nRf8001 Bluefruit hardware cannot process more
 than that in one UART message/packet. Return messages can be assembled by the
-software on the phone to larger messages.
+software on the smartphone to larger messages.
+
+V1.1 2017-04-22 Added Controllino Mini Hardware and Adapter https://controllino.biz/product/
+V1.1 2017-04-22 Added https://www.adafruit.com/product/2633
+V1.0 2016       https://www.adafruit.com/product/1697
 
 Example commands:
   * "blink" with argument "on" or "off": blink [ on | off ]
-  * "dwrite A1 H"  ... digitalWrite(A1, HIGH)
-  * "pmode A2 O"   ... pinMode(A1, OUTPUT)
-  * "awrite 3 128" ... analogWrite(3, 128)
+  * ---
+  * "pmode a0 o"   ... pinMode(A0, OUTPUT)
+  * "dwrite a0 h"  ... digitalWrite(A0, HIGH)
+  * ---  
+  * "pmode d1 o"   ... pinMode(5, OUTPUT)
+  * "awrite d1 128" ... analogWrite(5, 128)
+  * "pmode d2 o"   ... pinMode(6, OUTPUT)
+  * "awrite d2 64" ... analogWrite(6, 128)
 
 Download and install the dependent library [Adafruit_nRF8001](http://github.com/adafruit/Adafruit_nRF8001)
-then copy CatsCommandInterpreter/* to your libraries folder and restart the 
-Arduino SDK. Open the example as sketch and study it.
 
 Use an UART Serial App like this: https://itunes.apple.com/at/app/nrf-toolbox/id820906058?mt=8
 

@@ -10,21 +10,26 @@
 
 // This version uses call-backs on the event and RX so there's no data handling in the main loop!
 
+// select used hardware/board with different pin settings
+//#define HW_UNO 1
+#define HW_CONTROLLINO 1
+#include "Hardware.h"
+// Given by hardware: MISO, MOSI, SCK
+// defines BLE_CHIP_SELECT, BLE_INTERRUPT, BLE_RESET
+// CONTROLLINO RealTimeClock is available with CONTROLLINO_RTC_CHIP_SELECT PIN 10 (LOW=active)
+
 #include <SPI.h>
+
 #include "Adafruit_BLE_UART.h"
 
-// ====== Bluefruit UART PIN SETUP ======
-#define ADAFRUITBLE_REQ 10
-#define ADAFRUITBLE_RDY 2
-#define ADAFRUITBLE_RST 9
 // Initialize UART:
-Adafruit_BLE_UART uart = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
+Adafruit_BLE_UART uart = Adafruit_BLE_UART(BLE_CHIP_SELECT, BLE_INTERRUPT, BLE_RESET);
 
 // ====== CUSTOM PIN SETUP ======
-#define ledPin 3
+#define LED_PIN PIN_D0
 
 // define next line to do serial debugging
-//#define ACTIVATE_SERIAL 1
+#define ACTIVATE_SERIAL 1
 
 #ifdef ACTIVATE_SERIAL
   #define sbegin(x) Serial.begin(x)
@@ -50,10 +55,13 @@ CatsCommandInterpreter commandInterpreter = CatsCommandInterpreter();
 
 boolean blinkNow = false;
 
-#define AVAILABLE_PINS 12
-char* pinNames[AVAILABLE_PINS] = {"ledPWM", "4", "testInput", "6", "7", "8", "A0", "A1", "A2", "A3", "A4", "A5"};  // 12 pins
-unsigned char pinIds[AVAILABLE_PINS] = {3, 4, 5, 6, 7, 8, A0, A1, A2, A3, A4, A5};  // 12 pins
-boolean dreadStatusPins[AVAILABLE_PINS]  = {0,0,1,0,0,0,0,0,0,0,0,0};  // 12 pins, set to 1 for inclusion in status
+#define AVAILABLE_PINS 8
+char* pinNames[AVAILABLE_PINS] = {"d0", "d1", "d2", "d3", "d4", "d5", "a0", "a1"};
+unsigned char pinIds[AVAILABLE_PINS] = 
+  {  PIN_D0, PIN_D1, PIN_D2, 
+     PIN_D3, PIN_D4, PIN_D5, 
+     PIN_A0, PIN_A1};
+boolean dreadStatusPins[AVAILABLE_PINS]  = {1,1,1,1,1,1,1,1};  // set to 1 for inclusion in status
 
 void json_append_attr_int(String *status, char *attr, int val, boolean comma=false)
 {
@@ -87,26 +95,9 @@ boolean command_status(char* arg1, char* arg2)  // TX: STATUS-JSON {"blinking":1
 
 int argument_pin(char* arg)
 {
-    switch(*arg)
-    {
-        case '3': return 3;
-        case '4': return 4;
-        case '5': return 5;
-        case '6': return 6;
-        case '7': return 7;
-        case '8': return 8;
-        
-        case 'A':
-            switch(*(arg+1))
-            {
-                case '1': return A1;
-                case '2': return A2;
-                case '3': return A3;
-                case '4': return A4;
-                case '5': return A5;
-                case '6': return A6;
-            }
-    }
+    for(int i=0; i<AVAILABLE_PINS;i++)
+        if(pinNames[i][0] == arg[0] && pinNames[i][1] == arg[1])
+            return pinIds[i];
     
     uart.print(F("ERROR invalid pin!"));
     return 0;
@@ -114,10 +105,10 @@ int argument_pin(char* arg)
 
 int argument_mode(char* arg)
 {
-    if(*arg == 'O')
+    if(*arg == 'o')
        return OUTPUT;
        
-    if(*arg == 'P')
+    if(*arg == 'p')
        return INPUT_PULLUP;
        
     return INPUT;
@@ -125,7 +116,7 @@ int argument_mode(char* arg)
 
 int argument_hilo(char* arg)
 {
-    if(*arg == 'H')
+    if(*arg == 'h')
        return HIGH;
        
     return LOW;
@@ -141,26 +132,24 @@ boolean command_pmode(char* arg1, char* arg2)  // pinmode A0 [O, I]
     int mode = argument_mode(arg2);
     
     pinMode(pin, mode);
-    uart.print("OK pinmode");
+    uart.print(F("OK pinmode"));
     
     return true;
 }
 
 boolean command_dwrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
 {
-    // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
     int pin = argument_pin(arg1);
     if(pin == 0)
         return true;
     
     digitalWrite(pin, argument_hilo(arg2));
-    uart.print("OK dwrite");
+    uart.print(F("OK dwrite"));
     return true;
 }
 
 boolean command_dread(char* arg1, char* arg2)  // pinmode A0 [O, I]
 {
-    // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
     int pin = argument_pin(arg1);
     if(pin == 0)
         return true;
@@ -175,10 +164,9 @@ boolean command_dread(char* arg1, char* arg2)  // pinmode A0 [O, I]
 
 boolean command_awrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
 {
-    // pins 3, 5, 6 (unavailable: 9, 10, 11)
     int pin = argument_pin(arg1);
     
-    if(pin!=3 && pin!=5 && pin!=6)
+    if(pin!=3 && pin!=5 && pin!=6) // UNO SPECIFIC
     {
         uart.print(F("ERROR invalid pin!"));
         return true;
@@ -194,7 +182,7 @@ boolean command_blink(char* arg1, char* arg2)
     if(strcmp(arg1, "on") == 0) // command1: start blinking
     {
         // do not use delay before write, WHY? 
-        uart.print("BLINK ON!");
+        uart.print(F("BLINK ON!"));
         
         // execute the command
         blinkNow = true;
@@ -204,7 +192,7 @@ boolean command_blink(char* arg1, char* arg2)
     if(strcmp(arg1, "off") == 0) // command2: stop blinking
     {
         // do not use delay before write, WHY? 
-        uart.print("BLINK OFF!");
+        uart.print(F("BLINK OFF!"));
         
         // execute the command
         blinkNow = false;
@@ -223,7 +211,7 @@ void setup(void)
     // ====== BEGIN == Bluefruit UART SETUP ======
     uart.setRXcallback(rxCallback);
     uart.setACIcallback(aciCallback);
-    uart.setDeviceName("BlueBli"); /* 7 characters max! */
+    uart.setDeviceName("Locandy"); /* 7 characters max! */
     uart.begin();
     // ====== END ==== Bluefruit UART SETUP ======
     
@@ -234,7 +222,7 @@ void setup(void)
     // ====== END ==== Start Serial Console ======
     
     // ======  ==============================
-    pinMode(ledPin,OUTPUT);    
+    pinMode(LED_PIN,OUTPUT);    
 
     // ======  REGISTER COMMANDS ==============================
     commandInterpreter.addCommand("blink", command_blink);
@@ -257,11 +245,11 @@ void loop()
     {
         static int state = LOW;
         state = ~state;
-        digitalWrite(ledPin, state);
-        delay(500);
+        digitalWrite(LED_PIN, state);
+        delay(1000);
     }
     else
-        digitalWrite(ledPin, LOW);
+        digitalWrite(LED_PIN, LOW);
 }
 
 /**************************************************************************/
@@ -301,7 +289,7 @@ void rxCallback(uint8_t *buffer, uint8_t len)
   if(commandInterpreter.interpretCommand(buffer, len)) // check if command can be interpreted
       return;  // do not echo if command was a success
 
-  uart.print("Huh?: ");
+  uart.print(F("Unknown Command Error: "));
   uart.write(buffer, len);
   
   // print buffer in HEX to the console:

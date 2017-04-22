@@ -7,15 +7,15 @@
 // define next line to do serial debugging
 //#define ACTIVATE_SERIAL 1
 
-#ifdef ACTIVATE_SERIAL
-  #define sbegin(x) begin(x)
-  #define sprint(args...) print(args)
-  #define sprintln(args...) println(args)
-#else
-  #define sbegin(x)
-  #define sprint(args...)
-  #define sprintln(args...)
-#endif
+//#ifdef ACTIVATE_SERIAL
+//  #define sbegin(x) begin(x)
+//  #define sprint(args...) print(args)
+//  #define sprintln(args...) println(args)
+//#else
+//  #define sbegin(x)
+//  #define sprint(args...)
+//  #define sprintln(args...)
+//#endif
 
 #ifndef CMD_WORD_SEPARATOR
   #define CMD_WORD_SEPARATOR ' '
