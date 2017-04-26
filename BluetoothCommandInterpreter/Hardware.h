@@ -53,7 +53,7 @@
 #define CONTROLLINO_A4 20
 #define CONTROLLINO_A5 21
 
-// WARNING: A4, A5 do not work as OUTPUT!
+// WARNING: A4, A5 do not work as OUTPUT on Uno/Controllino Mini!
 #define BLE_CHIP_SELECT CONTROLLINO_A2
 #define BLE_INTERRUPT   CONTROLLINO_INTERRUPT_0
 #define BLE_RESET       CONTROLLINO_A3

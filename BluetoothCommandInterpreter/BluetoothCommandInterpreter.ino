@@ -26,7 +26,7 @@
 Adafruit_BLE_UART uart = Adafruit_BLE_UART(BLE_CHIP_SELECT, BLE_INTERRUPT, BLE_RESET);
 
 // ====== CUSTOM PIN SETUP ======
-#define LED_PIN PIN_D0
+#define LED_PIN PIN_D7
 
 // define next line to do serial debugging
 #define ACTIVATE_SERIAL 1
@@ -124,7 +124,7 @@ int argument_hilo(char* arg)
 
 boolean command_pmode(char* arg1, char* arg2)  // pinmode A0 [O, I]
 {
-    // available pins are: 4, 5, 6, 7, 8, 3, A0, A1, A2, A3, A4, A5
+    // available pins pinNames[AVAILABLE_PINS]
     int pin = argument_pin(arg1);
     if(pin == 0)
         return true;
@@ -173,7 +173,7 @@ boolean command_awrite(char* arg1, char* arg2)  // pinmode A0 [O, I]
     }
     
     analogWrite(pin, atoi(arg2));
-    uart.print("OK awrite");
+    uart.print(F("OK awrite"));
     return true;
 }
 
@@ -221,7 +221,7 @@ void setup(void)
     sprintln(F("nRF8001 CommandInterpreter Demo"));
     // ====== END ==== Start Serial Console ======
     
-    // ======  ==============================
+    // ====== LED ==============================
     pinMode(LED_PIN,OUTPUT);    
 
     // ======  REGISTER COMMANDS ==============================
@@ -246,7 +246,7 @@ void loop()
         static int state = LOW;
         state = ~state;
         digitalWrite(LED_PIN, state);
-        delay(1000);
+        delay(500);
     }
     else
         digitalWrite(LED_PIN, LOW);

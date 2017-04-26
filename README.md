@@ -40,4 +40,9 @@ USAGE:
         return;  // do not echo if command was a success
     }
 
+Links:
+  * https://electronza.com/controllino-mini-review/
+  * http://controllino.biz/wp-content/uploads/2016/05/MINI_DATASHEET-19-04-2016.pdf
+  * http://www.produktinfo.conrad.com/datenblaetter/1300000-1399999/001325474-an-01-en-CONTROLLINO_MINI.pdf
+
 ![](https://raw.githubusercontent.com/katzlbt/arduino-bluetooth-commander/master/pictures/ArduinoProBluefruit.jpg)
